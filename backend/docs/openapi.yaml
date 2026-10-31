@@ -1,0 +1,239 @@
+openapi: 3.0.3
+info:
+  title: Sawari Ride Booking API
+  version: 1.0.0
+  description: |
+    Simplified ride-hailing backend. All responses use `{ "data": ... }` on success and
+    `{ "error": { "code", "message", "details?", "requestId" } }` on failure.
+
+    **Auth (demo):** riders are identified by the `X-Rider-Id` header. Drivers are identified by `driverId` in the body.
+    As this is simple Technical Assessment i haven't used JWT/session for auth. for production use JWT or session.
+servers:
+  - url: http://localhost:4000/api/v1
+tags:
+  - name: Rides
+  - name: Drivers
+  - name: Support
+paths:
+  /places:
+    get:
+      tags: [Support]
+      summary: Known Lahore landmarks (stand-in for a geocoder)
+      responses:
+        '200': { description: OK }
+  /riders:
+    post:
+      tags: [Support]
+      summary: Find-or-create a rider by phone (demo sign-in)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RiderInput' }
+      responses:
+        '200': { description: Rider }
+        '400': { $ref: '#/components/responses/ValidationError' }
+  /rides/estimate:
+    post:
+      tags: [Rides]
+      summary: Fare and pickup ETA for each category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TripInput' }
+      responses:
+        '200':
+          description: Estimate. `etaMinutes` is null and `available` false when no driver can serve the category.
+        '400': { $ref: '#/components/responses/ValidationError' }
+  /rides:
+    post:
+      tags: [Rides]
+      summary: Create a ride request
+      description: |
+        Safe to retry: repeat the call with the **same** `Idempotency-Key` and you get the original ride back
+        (`200` + `Idempotent-Replayed: true`). Reusing a key with a different body returns `422`.
+        A rider may have only one active ride.
+      parameters:
+        - { $ref: '#/components/parameters/RiderId' }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Client-generated UUID, 8–128 chars. Generate one per booking attempt.
+          schema: { type: string, minLength: 8, maxLength: 128 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateRide' }
+            example:
+              pickup: { address: Liberty Market, Gulberg III, lat: 31.5106, lng: 74.3446 }
+              destination: { address: Packages Mall, lat: 31.4707, lng: 74.3547 }
+              category: economy
+      responses:
+        '201': { description: Ride created, content: { application/json: { schema: { $ref: '#/components/schemas/RideEnvelope' } } } }
+        '200': { description: Replay of an earlier identical request }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { description: Missing/invalid X-Rider-Id }
+        '409': { description: NO_DRIVERS_AVAILABLE or RIDER_HAS_ACTIVE_RIDE }
+        '422': { description: IDEMPOTENCY_KEY_REUSED }
+  /rides/{id}:
+    get:
+      tags: [Rides]
+      summary: Ride details (poll this for status)
+      parameters: [{ $ref: '#/components/parameters/RideId' }]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/RideEnvelope' } } } }
+        '404': { description: NOT_FOUND }
+  /rides/{id}/accept:
+    post:
+      tags: [Rides]
+      summary: Driver accepts a requested ride
+      description: Atomically claims the driver (available→busy) and the ride (requested→accepted). Exactly one driver can win.
+      parameters: [{ $ref: '#/components/parameters/RideId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DriverAction' }
+      responses:
+        '200': { description: Accepted }
+        '403': { description: DRIVER_NOT_ELIGIBLE (wrong category) }
+        '404': { description: Ride or driver not found }
+        '409': { description: INVALID_STATE_TRANSITION, DRIVER_UNAVAILABLE or DRIVER_TOO_FAR }
+  /rides/{id}/complete:
+    post:
+      tags: [Rides]
+      summary: Assigned driver completes the ride
+      parameters: [{ $ref: '#/components/parameters/RideId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DriverAction' }
+      responses:
+        '200': { description: Completed }
+        '403': { description: Not the assigned driver }
+        '409': { description: INVALID_STATE_TRANSITION }
+  /rides/{id}/cancel:
+    post:
+      tags: [Rides]
+      summary: Rider cancels (allowed while requested or accepted)
+      parameters:
+        - { $ref: '#/components/parameters/RideId' }
+        - { $ref: '#/components/parameters/RiderId' }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { reason: { type: string, maxLength: 200 } }
+      responses:
+        '200': { description: Cancelled }
+        '403': { description: Ride belongs to another rider }
+        '409': { description: INVALID_STATE_TRANSITION (already completed/cancelled) }
+  /drivers:
+    get:
+      tags: [Drivers]
+      summary: List drivers (demo driver console)
+      responses:
+        '200': { description: OK }
+  /drivers/{id}/offers:
+    get:
+      tags: [Drivers]
+      summary: Open ride requests near an available driver, nearest first
+      parameters: [{ $ref: '#/components/parameters/DriverId' }]
+      responses:
+        '200': { description: OK }
+  /drivers/{id}/availability:
+    patch:
+      tags: [Drivers]
+      summary: Go online/offline (rejected while busy)
+      parameters: [{ $ref: '#/components/parameters/DriverId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties: { status: { type: string, enum: [available, offline] } }
+      responses:
+        '200': { description: Updated }
+        '409': { description: DRIVER_BUSY }
+components:
+  parameters:
+    RiderId:
+      name: X-Rider-Id
+      in: header
+      required: true
+      schema: { type: string, pattern: '^[a-f0-9]{24}$' }
+    RideId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, pattern: '^[a-f0-9]{24}$' }
+    DriverId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, pattern: '^[a-f0-9]{24}$' }
+  responses:
+    ValidationError:
+      description: VALIDATION_ERROR with per-field `details`
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    Place:
+      type: object
+      required: [address, lat, lng]
+      properties:
+        address: { type: string }
+        lat: { type: number, description: Must be inside Lahore (31.30–31.70) }
+        lng: { type: number, description: Must be inside Lahore (74.10–74.55) }
+    TripInput:
+      type: object
+      required: [pickup, destination]
+      properties:
+        pickup: { $ref: '#/components/schemas/Place' }
+        destination: { $ref: '#/components/schemas/Place' }
+    CreateRide:
+      allOf:
+        - { $ref: '#/components/schemas/TripInput' }
+        - type: object
+          required: [category]
+          properties: { category: { type: string, enum: [economy, comfort] } }
+    DriverAction:
+      type: object
+      required: [driverId]
+      properties: { driverId: { type: string } }
+    RiderInput:
+      type: object
+      required: [name, phone]
+      properties:
+        name: { type: string }
+        phone: { type: string, example: '+923001234567' }
+    RideEnvelope:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id: { type: string }
+            status: { type: string, enum: [requested, accepted, completed, cancelled] }
+            category: { type: string, enum: [economy, comfort] }
+            etaMinutes: { type: integer }
+            distanceKm: { type: number }
+            fare: { type: object, properties: { currency: { type: string }, total: { type: integer } } }
+            driver: { type: object, nullable: true }
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message: { type: string }
+            details: {}
+            requestId: { type: string }
