@@ -42,7 +42,7 @@ export function createApp() {
   app.use(helmet());
   app.use(
     cors({
-      origin: FRONTEND_URL || 'http://localhost:5173' ,
+      origin: env.FRONTEND_URL || 'http://localhost:5173' ,
       allowedHeaders: ['Content-Type', 'X-Rider-Id', 'Idempotency-Key', 'X-Request-Id'],
       exposedHeaders: ['X-Request-Id', 'Idempotent-Replayed'],
     }),
@@ -60,7 +60,7 @@ export function createApp() {
        status: dbUp ? 'ok' : 'degraded', db: dbUp ? 'up' : 'down' 
       });
   });
-  
+
   app.use('/api/v1', routes);
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -135,7 +135,7 @@ paths:
   /drivers:
     get:
       tags: [Drivers]
-      summary: List drivers (demo driver console)
+      summary: List drivers (demo driver)
       responses:
         '200': { description: OK }
   /drivers/{id}/offers:

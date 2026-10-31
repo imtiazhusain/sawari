@@ -1,7 +1,7 @@
 # Sawari Lahore ride booking (MERN)
 
 A simplified ride-hailing app: a rider picks a pickup and destination in Lahore, chooses **Economy** or **Comfort**,
-sees a fare and pickup ETA, requests a ride and follows its status. A small **driver console** lets you play the
+sees a fare and pickup ETA, requests a ride and follows its status. A small **driver** lets you play the
 driver side (accept / complete) so the full lifecycle can be exercised in a browser.
 
 | Layer | Stack |

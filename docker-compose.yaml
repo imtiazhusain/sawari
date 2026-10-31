@@ -1,0 +1,29 @@
+services:
+  mongo:
+    image: mongo:7
+    volumes: [mongo-data:/data/db]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      MONGO_URI: mongodb://mongo:27017/ride_booking # local-only database, no credentials involved
+      FRONTEND_URL: http://localhost:8080
+      LOG_LEVEL: info
+    depends_on:
+      mongo: { condition: service_healthy }
+    ports: ["4000:4000"]
+
+  web:
+    build: ./frontend
+    depends_on: [api]
+    ports: ["8080:80"]
+
+volumes:
+  mongo-data:

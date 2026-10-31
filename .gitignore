@@ -10,3 +10,10 @@ node_modules/
 # Build files
 dist/
 build/
+
+# Other
+coverage
+*.log
+.DS_Store
+playwright-report
+test-results

@@ -4,10 +4,11 @@ import { logger } from '../utils/logger.js';
 export async function connectDb() {
   try {
     
-    await mongoose.connect(env.MONGO_URI);
+      await mongoose.connect(env.MONGO_URI);
+
     logger.info("✅ Successfully connected to Database ");
   } catch (error) {
-    console.error('❌ MongoDB Connection Error:', err);
+    console.error('❌ MongoDB Connection Error:', error);
      process.exit(1);
   }
 }
