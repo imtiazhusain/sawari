@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+
 const riderSchema = new Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 80 },
@@ -6,4 +7,5 @@ const riderSchema = new Schema(
   },
   { timestamps: true },
 );
+
 export const Rider = model('Rider', riderSchema);

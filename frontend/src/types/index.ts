@@ -1,5 +1,7 @@
 export type RideCategory = 'economy' | 'comfort';
+
 export type RideStatus = 'requested' | 'accepted' | 'completed' | 'cancelled';
+
 export type DriverStatus = 'offline' | 'available' | 'busy';
 
 export interface Place {

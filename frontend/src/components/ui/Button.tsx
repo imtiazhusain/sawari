@@ -14,7 +14,14 @@ const styles: Record<Variant, string> = {
   danger: 'bg-surface text-brick border border-brick/40 hover:bg-brick-tint disabled:text-ink-faint disabled:border-line',
 };
 
-export function Button({ variant = 'primary', loading = false, disabled, children, className = '', ...rest }: Props) {
+export function Button({
+  variant = 'primary',
+  loading = false,
+  disabled,
+  children,
+  className = '',
+  ...rest
+}: Props) {
   return (
     <button
       {...rest}
@@ -22,7 +29,9 @@ export function Button({ variant = 'primary', loading = false, disabled, childre
       aria-busy={loading || undefined}
       className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-lg px-5 text-base font-semibold transition-colors disabled:cursor-not-allowed ${styles[variant]} ${className}`}
     >
-      {loading && <Spinner />}
+      {loading && (
+        <Spinner />
+      )}
       {children}
     </button>
   );

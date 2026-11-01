@@ -6,7 +6,10 @@ import App from './App';
 import './index.css';
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true }, mutations: { retry: 0 } },
+  defaultOptions: {
+    queries: { retry: 1, refetchOnWindowFocus: true },
+    mutations: { retry: 0 }
+  },
 });
 
 createRoot(document.getElementById('root')!).render(

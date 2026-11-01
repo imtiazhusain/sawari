@@ -1,7 +1,9 @@
 import { Schema, model } from 'mongoose';
 import { CATEGORIES } from '../domain/categories.js';
 import { pointSchema } from './shared.js';
+
 export const DRIVER_STATUSES = ['offline', 'available', 'busy'];
+
 const driverSchema = new Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 80 },
@@ -11,7 +13,12 @@ const driverSchema = new Schema(
       model: { type: String, required: true },
       plate: { type: String, required: true },
     },
-    status: { type: String, enum: [...DRIVER_STATUSES], default: 'offline', required: true },
+    status: {
+      type: String,
+      enum: [...DRIVER_STATUSES],
+      default: 'offline',
+      required: true
+    },
     location: { type: pointSchema, required: true },
     /** Set while busy. Lets us release a driver only if they are still bound to *this* ride. */
     currentRide: { type: Schema.Types.ObjectId, ref: 'Ride', default: null },
@@ -24,4 +31,5 @@ const driverSchema = new Schema(
 driverSchema.index({ location: '2dsphere' });
 
 driverSchema.index({ status: 1, category: 1 });
+
 export const Driver = model('Driver', driverSchema);

@@ -3,8 +3,20 @@ import { Driver } from '../models/Driver.js';
 import { toPoint } from '../models/shared.js';
 import { PLACES } from '../services/places.service.js';
 import { logger } from '../utils/logger.js';
-const place = (id) => PLACES.find((p) => p.id === id);
-const near = (id, dLat, dLng) => ({ lat: place(id).lat + dLat, lng: place(id).lng + dLng });
+
+const place = (id) => {
+  return PLACES.find((p) => {
+    return p.id === id;
+  });
+};
+
+const near = (id, dLat, dLng) => {
+  return {
+    lat: place(id).lat + dLat,
+    lng: place(id).lng + dLng,
+  };
+};
+
 const DRIVERS = [
   {
     name: 'Usman Tariq',
@@ -91,8 +103,10 @@ const DRIVERS = [
     at: near('johar-town', -0.003, 0.003),
   },
 ];
+
 async function main() {
   await connectDb();
+
   for (const [i, d] of DRIVERS.entries()) {
     await Driver.findOneAndUpdate(
       { phone: `+92300555${String(1000 + i)}` },
@@ -109,9 +123,12 @@ async function main() {
       { upsert: true },
     );
   }
+
   logger.info({ drivers: DRIVERS.length }, 'seeded drivers');
+
   await disconnectDb();
 }
+
 main().catch((err) => {
   logger.error({ err }, 'seed failed');
   process.exit(1);

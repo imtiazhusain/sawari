@@ -8,7 +8,14 @@ import { Spinner } from '../components/ui/Spinner';
 import { friendlyError } from '../lib/errors';
 import { getActiveRideId, setActiveRideId } from '../lib/session';
 import { uuid } from '../lib/uuid';
-import { useCancelRide, useCreateRide, useEstimate, usePlaces, useRide, useRiderSession } from '../hooks/queries';
+import {
+  useCancelRide,
+  useCreateRide,
+  useEstimate,
+  usePlaces,
+  useRide,
+  useRiderSession
+} from '../hooks/queries';
 import type { Place, RideCategory } from '../types';
 import { SplitLayout } from './SplitLayout';
 
@@ -23,14 +30,19 @@ export default function RiderPage() {
 
   //For example, if the user booked a ride and refreshed the page, the application can recover the saved ride ID instead of immediately showing a new booking form.
   //lazy initializer. React calls this function to obtain the initial state rather than calling it again on every render.
-
-  const [rideId, setRideId] = useState<string | null>(() => getActiveRideId());
+  const [rideId, setRideId] = useState<string | null>(() => {
+    return getActiveRideId();
+  });
 
   // One idempotency key per booking attempt: reused on retries, regenerated only when the request itself changes.
   const idempotencyKey = useRef(uuid());
-  useEffect(() => {
-    idempotencyKey.current = uuid();
-  }, [pickup?.id, destination?.id, category]);
+
+  useEffect(
+    () => {
+      idempotencyKey.current = uuid();
+    },
+    [pickup?.id, destination?.id, category]
+  );
 
   const estimate = useEstimate(pickup, destination);
   const createRide = useCreateRide();
@@ -38,10 +50,14 @@ export default function RiderPage() {
   const cancelRide = useCancelRide();
 
   // A remembered ride that no longer exists in backend should not trap the rider on a dead screen.
-  useEffect(() => {
-    if (rideQuery.error instanceof ApiError && rideQuery.error.status === 404) clearRide();
-  }, [rideQuery.error]);
-
+  useEffect(
+    () => {
+      if (rideQuery.error instanceof ApiError && rideQuery.error.status === 404) {
+        clearRide();
+      }
+    },
+    [rideQuery.error]
+  );
 
   // Forget the currently selected ride.
   function clearRide() {
@@ -50,7 +66,6 @@ export default function RiderPage() {
     createRide.reset();
     cancelRide.reset();
   }
-
 
   // Return to a clean booking form.
   function startOver() {
@@ -62,9 +77,17 @@ export default function RiderPage() {
   }
 
   function submit() {
-    if (!pickup || !destination) return;
+    if (!pickup || !destination) {
+      return;
+    }
+
     createRide.mutate(
-      { pickup, destination, category, idempotencyKey: idempotencyKey.current },
+      {
+        pickup,
+        destination,
+        category,
+        idempotencyKey: idempotencyKey.current
+      },
       {
         onSuccess: (ride) => {
           setActiveRideId(ride.id);
@@ -79,16 +102,32 @@ export default function RiderPage() {
   const mapDestination = ride?.destination ?? destination;
 
   let panel;
+
   if (session.isLoading) {
-    panel = <Spinner label="Getting things ready…" />;
+    panel = (
+      <Spinner label="Getting things ready…" />
+    );
   } else if (session.isError) {
-    panel = <Alert action={{ label: 'Try again', onClick: () => session.refetch() }}>{friendlyError(session.error)}</Alert>;
+    panel = (
+      <Alert
+        action={{
+          label: 'Try again',
+          onClick: () => {
+            return session.refetch();
+          }
+        }}
+      >
+        {friendlyError(session.error)}
+      </Alert>
+    );
   } else if (rideId) {
     if (ride) {
       panel = (
         <RideStatusCard
           ride={ride}
-          onCancel={() => cancelRide.mutate(ride.id)}
+          onCancel={() => {
+            return cancelRide.mutate(ride.id);
+          }}
           cancelling={cancelRide.isPending}
           cancelError={cancelRide.error}
           onReset={startOver}
@@ -96,9 +135,22 @@ export default function RiderPage() {
         />
       );
     } else if (rideQuery.isError) {
-      panel = <Alert action={{ label: 'Retry', onClick: () => rideQuery.refetch() }}>{friendlyError(rideQuery.error)}</Alert>;
+      panel = (
+        <Alert
+          action={{
+            label: 'Retry',
+            onClick: () => {
+              return rideQuery.refetch();
+            }
+          }}
+        >
+          {friendlyError(rideQuery.error)}
+        </Alert>
+      );
     } else {
-      panel = <Spinner label="Loading your ride…" />;
+      panel = (
+        <Spinner label="Loading your ride…" />
+      );
     }
   } else {
     panel = (
@@ -106,7 +158,9 @@ export default function RiderPage() {
         places={places}
         placesLoading={placesQuery.isLoading}
         placesError={placesQuery.isError}
-        onRetryPlaces={() => placesQuery.refetch()}
+        onRetryPlaces={() => {
+          return placesQuery.refetch();
+        }}
         pickup={pickup}
         destination={destination}
         category={category}
@@ -116,7 +170,9 @@ export default function RiderPage() {
         estimate={estimate.data}
         estimateLoading={estimate.isFetching && !estimate.data}
         estimateError={estimate.error}
-        onRetryEstimate={() => estimate.refetch()}
+        onRetryEstimate={() => {
+          return estimate.refetch();
+        }}
         submitting={createRide.isPending}
         submitError={createRide.error}
         onSubmit={submit}
@@ -127,7 +183,14 @@ export default function RiderPage() {
   return (
     <SplitLayout
       panel={panel}
-      map={<MapPlaceholder places={places} pickup={mapPickup} destination={mapDestination} driver={ride?.driver?.location ?? null} />}
+      map={
+        <MapPlaceholder
+          places={places}
+          pickup={mapPickup}
+          destination={mapDestination}
+          driver={ride?.driver?.location ?? null}
+        />
+      }
     />
   );
 }

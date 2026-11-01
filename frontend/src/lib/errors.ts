@@ -16,10 +16,16 @@ const MESSAGES: Record<string, string> = {
 /** Turns any thrown value into a sentence a rider can act on. */
 export function friendlyError(error: unknown): string {
   if (error instanceof ApiError) {
-    if (error.status >= 500) return 'Something went wrong on our side. Please try again.';
+    if (error.status >= 500) {
+      return 'Something went wrong on our side. Please try again.';
+    }
+
     return MESSAGES[error.code] ?? error.message;
   }
+
   return 'Something went wrong. Please try again.';
 }
 
-export const isRetryable = (error: unknown): boolean => error instanceof ApiError && error.retryable;
+export const isRetryable = (error: unknown): boolean => {
+  return error instanceof ApiError && error.retryable;
+};

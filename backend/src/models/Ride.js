@@ -2,12 +2,18 @@ import { Schema, model } from 'mongoose';
 import { CATEGORIES } from '../domain/categories.js';
 import { RIDE_STATUSES } from '../domain/rideStateMachine.js';
 import { placeSchema } from './shared.js';
+
 const rideSchema = new Schema(
   {
     rider: { type: Schema.Types.ObjectId, ref: 'Rider', required: true },
     driver: { type: Schema.Types.ObjectId, ref: 'Driver', default: null },
     category: { type: String, enum: [...CATEGORIES], required: true },
-    status: { type: String, enum: [...RIDE_STATUSES], default: 'requested', required: true },
+    status: {
+      type: String,
+      enum: [...RIDE_STATUSES],
+      default: 'requested',
+      required: true
+    },
     /** true while requested/accepted. Backs the "one active ride per rider" partial unique index. */
     isActive: { type: Boolean, default: true, required: true },
     pickup: { type: placeSchema, required: true },
@@ -31,13 +37,25 @@ const rideSchema = new Schema(
   },
   { timestamps: true },
 );
+
 // Duplicate-request protection: the same rider + key can only ever create one ride.
-rideSchema.index({ rider: 1, idempotencyKey: 1 }, { unique: true, name: 'rider_idempotency_key' });
+rideSchema.index(
+  { rider: 1, idempotencyKey: 1 },
+  { unique: true, name: 'rider_idempotency_key' }
+);
+
 // Data-integrity guard: a rider can have at most one active ride, enforced by the database.
 rideSchema.index(
   { rider: 1 },
-  { unique: true, partialFilterExpression: { isActive: true }, name: 'one_active_ride_per_rider' },
+  {
+    unique: true,
+    partialFilterExpression: { isActive: true },
+    name: 'one_active_ride_per_rider'
+  },
 );
+
 rideSchema.index({ status: 1, category: 1 });
+
 rideSchema.index({ 'pickup.location': '2dsphere' });
+
 export const Ride = model('Ride', rideSchema);

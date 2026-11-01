@@ -6,7 +6,13 @@ export default {
   transform: {
     '^.+\\.(t|j)sx?$': [
       '@swc/jest',
-      { jsc: { parser: { syntax: 'typescript', tsx: true }, transform: { react: { runtime: 'automatic' } } }, module: { type: 'commonjs' } },
+      {
+        jsc: {
+          parser: { syntax: 'typescript', tsx: true },
+          transform: { react: { runtime: 'automatic' } }
+        },
+        module: { type: 'commonjs' }
+      },
     ],
   },
   moduleNameMapper: { '^.+/lib/env$': '<rootDir>/src/test/envStub.ts' },

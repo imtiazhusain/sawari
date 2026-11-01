@@ -1,4 +1,5 @@
 import { fromPoint } from '../models/shared.js';
+
 export function toDriverDTO(driver) {
   return {
     id: String(driver._id),
@@ -11,7 +12,11 @@ export function toDriverDTO(driver) {
     currentRideId: driver.currentRide ? String(driver.currentRide) : null,
   };
 }
-const isDriverDoc = (d) => !!d && typeof d === 'object' && 'name' in d;
+
+const isDriverDoc = (d) => {
+  return !!d && typeof d === 'object' && 'name' in d;
+};
+
 /** Public representation of a ride. `driver` is only expanded when the query populated it. */
 export function toRideDTO(ride) {
   const driver = isDriverDoc(ride.driver) ? toDriverDTO(ride.driver) : null;
@@ -19,11 +24,19 @@ export function toRideDTO(ride) {
   return {
     id: String(ride._id),
     riderId: String(ride.rider),
-    driverId: ride.driver ? String(isDriverDoc(ride.driver) ? ride.driver._id : ride.driver) : null,
+    driverId: ride.driver ? String(
+      isDriverDoc(ride.driver) ? ride.driver._id : ride.driver
+    ) : null,
     status: ride.status,
     category: ride.category,
-    pickup: { address: ride.pickup.address, ...fromPoint(ride.pickup.location) },
-    destination: { address: ride.destination.address, ...fromPoint(ride.destination.location) },
+    pickup: {
+      address: ride.pickup.address,
+      ...fromPoint(ride.pickup.location)
+    },
+    destination: {
+      address: ride.destination.address,
+      ...fromPoint(ride.destination.location)
+    },
     distanceKm: ride.distanceKm,
     etaMinutes: ride.etaMinutes,
     fare: {

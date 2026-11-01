@@ -4,9 +4,15 @@ import { validate } from '../middlewares/validate.js';
 import { riderBody } from '../validators/common.js';
 import driverRoutes from './driver.routes.js';
 import rideRoutes from './ride.routes.js';
+
 const router = Router();
+
 router.get('/places', misc.places);
+
 router.post('/riders', validate({ body: riderBody }), misc.createRider);
+
 router.use('/rides', rideRoutes);
+
 router.use('/drivers', driverRoutes);
+
 export default router;
