@@ -18,6 +18,10 @@ const driverSchema = new Schema(
   },
   { timestamps: true },
 );
+
+// This creates a geographic index on location when the model’s indexes are built.
+//A 2dsphere index lets MongoDB perform geographic searches using locations on a sphere.
 driverSchema.index({ location: '2dsphere' });
+
 driverSchema.index({ status: 1, category: 1 });
 export const Driver = model('Driver', driverSchema);

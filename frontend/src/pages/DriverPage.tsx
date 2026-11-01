@@ -10,9 +10,13 @@ import { formatKm, formatPKR, titleCase } from '../lib/format';
 import { SplitLayout } from './SplitLayout';
 
 /** Demo-only: lets you play the driver side so you can watch a ride move through its lifecycle. */
-export default function DriverConsolePage() {
+export default function DriverPage() {
   const drivers = useDrivers();
   const [chosenId, setChosenId] = useState<string | null>(null);
+
+  // Try to find the selected driver in the fetched array.
+  // If none is found, use the first driver.
+  // At startup, the first fetched driver becomes the default selection
   const driver = drivers.data?.find((d) => d.id === chosenId) ?? drivers.data?.[0] ?? null;
   const driverId = driver?.id ?? null;
 

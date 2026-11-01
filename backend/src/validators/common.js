@@ -14,9 +14,20 @@ const category = z.enum(CATEGORIES, {
   errorMap: () => ({ message: `Category must be one of: ${CATEGORIES.join(', ')}` }),
 });
 const tripBase = z.object({ pickup: placeSchema, destination: placeSchema });
+
 const differentPlaces = (t) => haversineKm(t.pickup, t.destination) >= 0.2;
+
 const differentPlacesIssue = { message: 'Pickup and destination must be at least 200 m apart', path: ['destination'] };
+
+
+// 
+// It checks:
+//  Both locations have valid addresses and coordinates.
+// Both are inside the configured Lahore service area.
+// Pickup and destination are at least 0.2 km, or 200 metres, apart.
 export const estimateBody = tripBase.refine(differentPlaces, differentPlacesIssue);
+
+
 export const createRideBody = tripBase.extend({ category }).refine(differentPlaces, differentPlacesIssue);
 export const idempotencyKeyHeaders = z.object({
   'idempotency-key': z

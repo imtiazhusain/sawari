@@ -6,9 +6,14 @@ export const estimate = asyncHandler(async (req, res) => {
   res.json({ data: await rides.estimateRide(req.body) });
 });
 export const create = asyncHandler(async (req, res) => {
+
+//  validting the idempotency key
   const key = idempotencyKeyHeaders.parse({ 'idempotency-key': req.header('idempotency-key') })['idempotency-key'];
+
   const { ride, replayed } = await rides.createRide(res.locals.riderId, key, req.body);
+
   if (replayed) res.setHeader('Idempotent-Replayed', 'true');
+  
   res.status(replayed ? 200 : 201).json({ data: toRideDTO(ride) });
 });
 export const getOne = asyncHandler(async (req, res) => {

@@ -18,5 +18,8 @@ export const placeSchema = new Schema(
   },
   { _id: false },
 );
+
+// This format is called GeoJSON.
 export const toPoint = (c) => ({ type: 'Point', coordinates: [c.lng, c.lat] });
+
 export const fromPoint = (p) => ({ lat: p.coordinates[1], lng: p.coordinates[0] });

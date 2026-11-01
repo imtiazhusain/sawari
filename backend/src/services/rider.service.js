@@ -1,13 +1,17 @@
 import { Rider } from '../models/Rider.js';
-/** Find-or-create by phone. Stand-in for sign-up/sign-in until real auth exists. */
+// Find an existing rider by phone or create a new one (temporary auth just for task).
 export async function upsertRider(input) {
+   // Create rider if not found; preserve the existing name if already registered.
   const run = () =>
     Rider.findOneAndUpdate({ phone: input.phone }, { $setOnInsert: { name: input.name } }, { upsert: true, new: true });
   try {
     return await run();
   } catch (err) {
-    // Two first-time requests can race on the unique phone index; the loser simply re-reads.
+     // Handle concurrent requests trying to create a rider with the same phone.
+    // If a duplicate-key error occurs, retry to fetch the existing rider.
     if (err.code === 11000) return run();
+
+    // Propagate any other database errors.
     throw err;
   }
 }

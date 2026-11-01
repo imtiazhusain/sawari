@@ -11,6 +11,13 @@ import { haversineKm } from '../utils/geo.js';
 import { logger } from '../utils/logger.js';
 import { calculateFare, estimateRoadDistanceKm, etaMinutesFor } from './fare.service.js';
 import { findNearestAvailableDriver } from './matching.service.js';
+
+
+// The hash is a fingerprint used to check whether a retried request contains the same booking details.
+
+
+//Idempotency key	“Is this the same booking attempt?”
+//Request hash	“Does it contain the same booking details?”
 const hashRequest = (i) =>
   createHash('sha256')
     .update(
@@ -58,7 +65,7 @@ export async function estimateRide(input) {
       return {
         category,
         fare: calculateFare(category, distanceKm),
-        etaMinutes: match ? etaMinutesFor(match.distanceKm) : null,
+        etaMinutes: match ? etaMinutesFor(match.distanceKm) : null,// This ETA estimates time for the driver to reach pickup
         available: Boolean(match),
       };
     }),

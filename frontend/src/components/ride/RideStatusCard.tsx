@@ -58,6 +58,9 @@ export function RideStatusCard({ ride, onCancel, cancelling, cancelError, onRese
         </div>
       </dl>
 
+
+      {/* A later polling request fails.
+The previous ride data is still available. */}
       {refreshError != null && <Alert tone="info">Having trouble refreshing — showing the last known status.</Alert>}
       {cancelError != null && <Alert>{friendlyError(cancelError)}</Alert>}
 

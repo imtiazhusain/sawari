@@ -1,5 +1,5 @@
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
-import DriverConsolePage from './pages/DriverConsolePage';
+import DriverPage from './pages/DriverPage';
 import RiderPage from './pages/RiderPage';
 
 const link = ({ isActive }: { isActive: boolean }) =>
@@ -18,7 +18,7 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<RiderPage />} />
-          <Route path="/driver" element={<DriverConsolePage />} />
+          <Route path="/driver" element={<DriverPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

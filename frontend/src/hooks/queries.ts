@@ -4,7 +4,7 @@ import { ApiError } from '../api/client';
 import { getRiderId, setRiderId } from '../lib/session';
 import type { Place, RideCategory } from '../types';
 
-const DEMO_RIDER = { name: 'Ayesha Khan', phone: '+923001234567' };
+const DEMO_RIDER = { name: 'Imtiaz Hussain', phone: '+923111952000' };
 const POLL_MS = 3000;
 
 /** Demo sign-in: find-or-create the demo rider and remember its id for the X-Rider-Id header. */
@@ -18,6 +18,7 @@ export function useRiderSession() {
       setRiderId(rider.id);
       return rider;
     },
+     // Keep cached session data fresh indefinitely.
     staleTime: Infinity,
   });
 }
@@ -32,8 +33,8 @@ export function useEstimate(pickup: Place | null, destination: Place | null) {
   return useQuery({
     queryKey: ['estimate', pickup?.id, destination?.id],
     queryFn: () => api.estimateRide(trip!),
-    enabled: Boolean(trip),
-    staleTime: 20_000, // driver availability changes quickly
+    enabled: Boolean(trip), // call api if trip is not null
+    staleTime: 20_000, // driver availability changes quickly so 20 seconds
     retry: (count, error) => error instanceof ApiError && error.retryable && count < 2,
   });
 }

@@ -20,6 +20,10 @@ export default function RiderPage() {
   const [pickup, setPickup] = useState<Place | null>(null);
   const [destination, setDestination] = useState<Place | null>(null);
   const [category, setCategory] = useState<RideCategory>('economy');
+
+  //For example, if the user booked a ride and refreshed the page, the application can recover the saved ride ID instead of immediately showing a new booking form.
+  //lazy initializer. React calls this function to obtain the initial state rather than calling it again on every render.
+
   const [rideId, setRideId] = useState<string | null>(() => getActiveRideId());
 
   // One idempotency key per booking attempt: reused on retries, regenerated only when the request itself changes.
@@ -33,11 +37,13 @@ export default function RiderPage() {
   const rideQuery = useRide(rideId);
   const cancelRide = useCancelRide();
 
-  // A remembered ride that no longer exists should not trap the rider on a dead screen.
+  // A remembered ride that no longer exists in backend should not trap the rider on a dead screen.
   useEffect(() => {
     if (rideQuery.error instanceof ApiError && rideQuery.error.status === 404) clearRide();
   }, [rideQuery.error]);
 
+
+  // Forget the currently selected ride.
   function clearRide() {
     setActiveRideId(null);
     setRideId(null);
@@ -45,6 +51,8 @@ export default function RiderPage() {
     cancelRide.reset();
   }
 
+
+  // Return to a clean booking form.
   function startOver() {
     clearRide();
     setPickup(null);
