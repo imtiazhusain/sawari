@@ -212,9 +212,18 @@ The Playwright test uses `http://localhost:8080` by default. Set `E2E_BASE_URL` 
 
 It books a ride in the browser, accepts it through the API, checks that the driver appears, and cancels the ride.
 
+
+## AI tooling disclosure
+
+I used Claude (the chat interface, not Claude Code) to help create the map placeholder, draft test cases, improve parts of the UI, and format code. AI assistance was also used to prepare the documentation.
+
 ## Project structure
 
 ```text
+docs/
+  ARCHITECTURE.md    Architecture diagram, design decisions, and improvements
+  DATABASE.md        Database schema, relationships, and indexes
+
 backend/
   docs/
     openapi.yaml
@@ -244,6 +253,14 @@ frontend/
     test/           Test setup and fixtures
     types/          Shared TypeScript types
 ```
+
+## Documentation
+
+- [Architecture and design notes](docs/ARCHITECTURE.md) — architecture diagram, technology choices, concurrency handling, retries, scaling, deployment, and proposed improvements.
+- [Database schema](docs/DATABASE.md) — collections, fields, relationships, and indexes.
+- [API specification](backend/docs/openapi.yaml) — endpoint definitions and request/response schemas. Swagger UI is available at [localhost:4000/docs](http://localhost:4000/docs) when the backend is running.
+
+The setup and test commands are included above. Current limitations are listed below.
 
 ## Current limitations
 
